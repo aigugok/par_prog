@@ -14,7 +14,7 @@ float result[N];
 float esp = 0.00001; //точноcть
 float norma = 1;
 
-int threads_number = 8;
+int threads_number = 1;
 int count, residue, int_num_iterations = 0;
 
 // структура для данных потока
