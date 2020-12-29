@@ -13,7 +13,7 @@ float b[N];    //= {17, 3, 7, 6, 12};
 float result[N];
 int i, j, tread_id;
 
-//нет распараллеивания
+
 void matrix(void)
 {
     float sum = 0;
@@ -34,20 +34,7 @@ void matrix(void)
     }
 }
 
-//тестовая матрица с распараллеливанием
-void new_matrix(void)
-{
-#pragma omp parallel for private(i,j)
 
-    for (i = 0; i < N; i++)
-    {
-        for (j = 0; j < N; j++)
-        {
-            A[i][j] = ((float)rand() / (float)(RAND_MAX)) * c - 5.0;
-        }
-        b[i] = ((float)rand() / (float)(RAND_MAX)) * c - 5.0;
-    }
-}
 
 void multiplication(float *x_last, float *result)
 {
@@ -70,7 +57,6 @@ int main()
     matrix();
     omp_set_num_threads(1);
     clock_t start1 = clock();
-    //new_matrix();
     multiplication(b, result);
     clock_t stop1 = clock();
     double elapsed1 = (double)(stop1 - start1) / CLOCKS_PER_SEC;
@@ -78,7 +64,6 @@ int main()
 
     omp_set_num_threads(4);
     clock_t start3 = clock();
-    //new_matrix();
     multiplication(b, result);
     clock_t stop3 = clock();
     double elapsed3 = (double)(stop3 - start3) / CLOCKS_PER_SEC;
@@ -86,7 +71,6 @@ int main()
 
     omp_set_num_threads(8);
     clock_t start = clock();
-   //new_matrix();
     multiplication(b, result);
     clock_t stop = clock();
     double elapsed = (double)(stop - start) / CLOCKS_PER_SEC;
