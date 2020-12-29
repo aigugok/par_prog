@@ -4,12 +4,12 @@
 #include <time.h>
 #include <stdlib.h>
 
-#define N 5000	//размерность матрицы     
-#define c 15.0		                                                                                   //размерность
-float A[N][N]= {8, 1, 2, 0.5, 2, 1, 2, 0, 0, 0, 2, 0, 6, 0, 0, 0.5, 0, 0, 22, 0, 2, 0, 0, 0, 16}; //матрицы А
-float b[N] = {17, 3, 7, 6, 12};																	   //матрицы В
-float result[N];	 //ответ
-float esp = 0.001; //точночть
+#define N 5000																					   //размерность матрицы
+#define c 15.0																					   //размерность
+float A[N][N] ={8, 1, 2, 0.5, 2, 1, 2, 0, 0, 0, 2, 0, 6, 0, 0, 0.5, 0, 0, 22, 0, 2, 0, 0, 0, 16}; //матрицы А
+float b[N] ={17, 3, 7, 6, 12};																	   //матрицы В
+float result[N];																				   //ответ
+float esp = 0.00001;																				   //точночть
 float norma = 1;
 
 float x_last[N];
@@ -91,12 +91,11 @@ int main()
 {
 
 	clock_t start, stop;
-	
+
 	matrix();
 
 	float norm[N];
-	float sum_B = 0; //сумма элементов в столбце матрицы В
-		for (int i = 0; i < N; i++)
+	for (int i = 0; i < N; i++)
 	{
 		C[i] = b[i] / A[i][i];
 		for (int j = 0; j < N; j++)
@@ -108,33 +107,20 @@ int main()
 			else
 			{
 				B[i][j] = -A[i][j] / A[i][i];
-				//
 			}
 		}
 	}
-// for (int i = 0; i < N; i++){
-// for (int j = 0; j < N; j++)
-// 		{
-// 			printf("Matrix B i=%d j=%d %f\n",i,j, B[i][j]);
-// 		}
-// 		}
+	// for (int i = 0; i < N; i++){
+	// for (int j = 0; j < N; j++)
+	// 		{
+	// 			printf("Matrix B i=%d j=%d %f\n",i,j, B[i][j]);
+	// 		}
+	// 		}
 
-// for (int i = 0; i < N; i++){
-// 	printf("Matrix C i=%d %f\n",i, C[i]);
-// }
-	for (int i = 0; i < N; i++)
-	{
-		sum_B = 0;
-		for (int j = 0; j < N; j++)
-		{
-			sum_B += fabsf(B[i][j]);
-		}
-		norm[i] = sum_B;
-	}
+	// for (int i = 0; i < N; i++){
+	// 	printf("Matrix C i=%d %f\n",i, C[i]);
+	// }
 
-	float norm_B = Norm_max(norm, N);
-	printf("Норма матрицы В = %f\n", norm_B);
-	esp = esp * (1 - norm_B) / norm_B;
 	printf("Критерий остановки= %f\n", esp);
 
 	float zeros[N] = {0};
@@ -151,7 +137,6 @@ int main()
 		multiplication(x_last, result);
 		stop = clock();
 
-		
 		Norm(result, x_last, N, norm);
 
 		norma = Norm_max(norm, N);
@@ -162,63 +147,12 @@ int main()
 
 		count++;
 	}
-// for (int i = 0; i < N; i++){
-// 	printf("Result i=%d %f\n",i, x_last[i]);
-// }
-	
+	// for (int i = 0; i < N; i++){
+	// 	printf("Result i=%d %f\n",i, x_last[i]);
+	// }
+
 	printf("Time = %fsec.\n", (double)(stop - start) / CLOCKS_PER_SEC);
 }
 
 //gcc Jacobi.c -o jacobi && ./jacobi
 
-
-
-//float x_last[N];
-// ={-0.683712, -1.0625 , -0.70833333, -0.04829545, -0.265625 };
-// float C[N];
-// ={2.125 , 1.5, 1.16666667, 0.27272727, 0.75};
-// float B[N][N];
-// ={0, -0.125, -0.25, -0.0625, -0.25,
-// -0.5, 0, -0, -0, -0
-// ,-0.33333333, -0, 0, -0, -0,
-// -0.02272727, -0, -0, 0, -0,
-// -0.125, -0, -0, -0, 0 };
-
-
-
-	// float zeros[N] = {0};
-	// int count = 1;
-	// //while (count < 3)
-	// while (norma >= esp)
-	// {
-	// 	printf("Число итераций %d \n", count);
-	// 	if (count == 1)
-	// 	{
-	// 		CopyArray(C, x_last, N);
-	// 	}
-	// 	//создаем N параллельных потоков
-	// 	for (int i = 0; i < N; i++)
-	// 	{
-	// 		pthread_create(&(threads[i]), NULL, threadJac, (void *)&threadData1[i]);
-	// 	}
-
-	// 	//ждем пока каждый отработает
-	// 	for (int i = 0; i < N; i++)
-	// 		pthread_join(threads[i], NULL);
-
-	// 	// for (int i = 0; i < N; i++)
-	// 	// {
-	// 	// 	printf("Результат%f\n", result[i]);
-	// 	// }
-	// 	Norm(result, x_last, N, norm);
-
-	// 	norma = Norm_max(norm, N);
-	// 	// printf("Норма %f\n", norma);
-	// 	// printf("\n");
-	// 	CopyArray(result, x_last, N);
-	// 	CopyArray(zeros, result, N);
-
-	// 	count++;
-	// 	//free(resultMatrix);
-	// 	//free(x_last);
-	// }
