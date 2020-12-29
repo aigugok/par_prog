@@ -6,7 +6,7 @@ import time
 comm = MPI.COMM_WORLD #коммутатор с общим числом процессов
 size = comm.Get_size()#общее кол-во процессов
 rank = comm.Get_rank()#значение процесса
-N=4 #размерность матрицы
+N=100 #размерность матрицы
 A=[]
 b=[]
 result=[]
@@ -45,12 +45,12 @@ def generate_matrix():#генерируем матрицы А и b
             if i!=j:
                 sum+=abs(A[i][j])
         A[i][i]=sum+randint(0, 15)
-    print("A=",A)
-    print("b=",b)
+    # print("A=",A)
+    # print("b=",b)
     in_A_and_b_to_B_and_C()
-    print()
-    print("C=", C)
-    print("B=", B)
+    # print()
+    # print("C=", C)
+    # print("B=", B)
 
 
 def multiply_matrix(matrix_A, matrix_b, matrix_C):#умнoжение матриц
@@ -69,7 +69,7 @@ def response_matrix():#сбор матрицы из строк в одну ко�
     for i in range(1,size):
         resp = comm.recv(source=i, tag=i)
         result = result + resp
-    print("result",result)
+    #print("result",result)
     return result
 
 
@@ -101,23 +101,37 @@ def sending_data(x_matrix):#отправка необоходимых строк
         sum+=k
     
 
-#
-if (rank==0):
-    generate_matrix()
-    start = time.time() #отсчитываем время
-    sending_data(x_last)
+while (norm>=esp):
+    if (rank==0):
+        if (count==0):
+            generate_matrix()
+            start = time.time() #отсчитываем время
+        if (flag==0):
+            sending_data(x_last)
+            flag=1
+        if (flag==1):
+            x=np.array(response_matrix())
+            flag=0
+            count+=1
+            result=[]
+            norm=np.linalg.norm(x-x_last,ord = np.inf)
+            print("norm is", norm)
+            x_last=x
+            print("count",count)
 
-    x=np.array(response_matrix())
+
+    else:
+        A_for_proc = comm.recv(source=0, tag=1)
+        b_for_proc = comm.recv(source=0, tag=2)
+        C_for_proc = comm.recv(source=0, tag=3)
+
+        res=multiply_matrix(A_for_proc, b_for_proc, C_for_proc)
+        comm.send(res, dest=0, tag=rank)
+
+if(norm<esp):
     stop= time.time()
     print('Time=', float(stop - start))
-
-else:
-    A_for_proc = comm.recv(source=0, tag=1)
-    b_for_proc = comm.recv(source=0, tag=2)
-    C_for_proc = comm.recv(source=0, tag=3)
-
-    res=multiply_matrix(A_for_proc, b_for_proc, C_for_proc)
-    comm.send(res, dest=0, tag=rank)
+    
     
 
 #python3.8 mpi.py 
