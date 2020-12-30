@@ -4,13 +4,27 @@
 #include <malloc.h>
 #include <time.h>
 #include <stdlib.h>
-#define K 1400 //размерность матрицы
+#include <sys/time.h>
+
+#define K 1000 //размерность матрицы
 #define c 2.5
 #define send_data_tag 2001
 #define return_data_tag 2002
 float A[K][K]; // = {8, 1, 2, 0.5, 2, 1, 2, 0, 0, 0, 2, 0, 6, 0, 0, 0.5, 0, 0, 22, 0, 2, 0, 0, 0, 16};
 float b[K];    // = {17, 3, 7, 6, 12};
-// результат - {180, 23, 76,140.5,226}
+double t;
+
+
+//функция, возращащающая время в мс
+double mtime()
+{
+  struct timeval t;
+
+  gettimeofday(&t, NULL);
+  double mt = (double)t.tv_sec + (double)t.tv_usec / 1000000;
+  return mt;
+}
+
 
 void matrix(void) //Расчёт случайной матрицы и вектора заданной размерности
 {
@@ -57,7 +71,7 @@ int main(int argc, char **argv)
     int i_null;//первая строка, которую обрабатывает каждый процесс
     float max_norm;//норма
     float max_norm_last;//проверочная норма
-    clock_t start1 = clock();//засекает начало расчёта
+    t = mtime();//засекает начало расчёта
     ierr = MPI_Init(&argc, &argv);//инициалиризуем процессы
     ierr = MPI_Comm_rank(MPI_COMM_WORLD, &my_id);//получаем id процесса
     ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);//получаем количество процессов
@@ -127,11 +141,10 @@ int main(int argc, char **argv)
                 dj = 0;                             //переменная которая определяет указанные выше критерии остановки
             if (dj == 0)
             { //если критерий остановки, то считаем время и выводим полученные данные
-                clock_t stop1 = clock();
-                double elapsed1 = (double)(stop1 - start1) / CLOCKS_PER_SEC;
+                t = mtime()-t;
                 printf("количество итераций %d\n", iter_count); //колво итарций
                 printf("норма %f\n", max_norm);                 //норма
-                printf("Time for %d matrix =: %fc\n", K,elapsed1); //затраченное время
+                printf("Time for %d matrix =: %fc\n", K,t); //затраченное время
             }
             for (an_id = 1; an_id < num_procs; an_id++)
                 ierr = MPI_Send(&dj, 1, MPI_INT,an_id, send_data_tag, MPI_COMM_WORLD); //если не достигнут, то продолжаем
