@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#define N 5
+#define N 500
 #define c 15.0
 float A[N][N];//={8, 1, 2, 0.5, 2, 1, 2, 0, 0, 0, 2, 0, 6, 0, 0, 0.5, 0, 0, 22, 0, 2, 0, 0, 0, 16};
 float b[N];//={17, 3, 7, 6, 12};
@@ -15,7 +15,7 @@ float result[N];
 float esp = 0.00001; //точноcть
 float norma = 1;
 double t;
-int threads_number = 4;
+int threads_number = 2;
 int count, residue, int_num_iterations = 0;
 
 
@@ -114,10 +114,10 @@ int main()
 	for (int i = 0; i < threads_number; i++)
 		pthread_join(threads[i], NULL);
 
-		for (int i = 0; i < N; i++)
-	{
-		printf("Результат%f\n", result[i]);
-	}
+	// 	for (int i = 0; i < N; i++)
+	// {
+	// 	printf("Результат%f\n", result[i]);
+	// }
 
 	t = mtime()-t;
 	printf("Time for matrix with %d dimension on %d threads = %fsec.\n", N, threads_number,t);
