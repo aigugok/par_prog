@@ -4,18 +4,30 @@
 #include <time.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
-#define N 15000
+#define N 5
 #define c 15.0
-float A[N][N]; // = {8, 1, 2, 0.5, 2, 1, 2, 0, 0, 0, 2, 0, 6, 0, 0, 0.5, 0, 0, 22, 0, 2, 0, 0, 0, 16};
-float b[N];	   // = {17, 3, 7, 6, 12};
-float C[N];	   //= {2.125 , 1.5, 1.16666667, 0.27272727, 0.75};
+float A[N][N];//={8, 1, 2, 0.5, 2, 1, 2, 0, 0, 0, 2, 0, 6, 0, 0, 0.5, 0, 0, 22, 0, 2, 0, 0, 0, 16};
+float b[N];//={17, 3, 7, 6, 12};
+float C[N];//={2.125 , 1.5, 1.16666667, 0.27272727, 0.75};
 float result[N];
 float esp = 0.00001; //точноcть
 float norma = 1;
-
-int threads_number = 1;
+double t;
+int threads_number = 4;
 int count, residue, int_num_iterations = 0;
+
+
+//функция, возращащающая время в мс
+double mtime()
+{
+  struct timeval t;
+
+  gettimeofday(&t, NULL);
+  double mt = (double)t.tv_sec + (double)t.tv_usec / 1000000;
+  return mt;
+}
 
 // структура для данных потока
 typedef struct
@@ -31,12 +43,11 @@ typedef struct
 void matrix(void)
 {
 	float sum = 0;
-
 	srand((unsigned int)time(NULL));
-	for (int j = 0; j < N; j++)
+	for (int i = 0; i < N; i++)
 	{
-		sum = 0; //считаем сумму по столбцам
-		for (int i = 0; i < N; i++)
+		sum = 0; //считаем сумму по cтрокам
+		for (int j = 0; j < N; j++)
 		{
 			if (i != j)
 			{
@@ -44,8 +55,8 @@ void matrix(void)
 				sum += fabsf(A[i][j]);
 			}
 		}
-		A[j][j] = 1.1 * (sum + fabsf(((float)rand() / (float)(RAND_MAX)) * c));
-		b[j] = ((float)rand() / (float)(RAND_MAX)) * c - 5.0;
+		A[i][i] = 1.1 * (sum + fabsf(((float)rand() / (float)(RAND_MAX)) * c));
+		b[i] = ((float)rand() / (float)(RAND_MAX)) * c - 5.0;
 	}
 }
 
@@ -63,7 +74,7 @@ void *threadJac(void *threadJacData)
 		{
 			k += A[i][j] * data->x_array[j];
 		}
-		data->x_out[i] = k; // + C[i];
+		data->x_out[i] = k + C[i];
 		//printf("k=%f\n", k);
 	}
 	pthread_exit(0);
@@ -72,8 +83,7 @@ void *threadJac(void *threadJacData)
 int main()
 {
 	matrix();
-	clock_t start, stop;
-	start = clock();
+	t = mtime();
 
 	pthread_t *threads = (pthread_t *)malloc(N * sizeof(pthread_t));
 	threadData *threadData1 = (threadData *)malloc(N * sizeof(threadData));
@@ -83,7 +93,6 @@ int main()
 	for (int i = 0; i < threads_number; i++)
 	{
 		threadData1[i].x_array = b;
-		//printf("threadData1[i].x_array %f\n", threadData1[i].x_array[i]);
 		threadData1[i].row = N;
 		threadData1[i].x_out = result;
 		threadData1[i].from = i * int_num_iterations;
@@ -92,16 +101,6 @@ int main()
 		{
 			threadData1[i].to = threadData1[i].to + residue;
 		}
-	}
-
-	for (int i = 0; i < threads_number; i++)
-	{
-		if (i == threads_number - 1)
-		{
-			printf("%d потоку нужно сосчитать %d\n", i, residue + int_num_iterations);
-		}
-		else
-			printf("%d потоку нужно сосчитать %d\n", i, int_num_iterations);
 	}
 
 	//Каждый поток, кроме последнего получит число = целочисленному делению размрности матрицы N/кол-во потоков
@@ -115,16 +114,18 @@ int main()
 	for (int i = 0; i < threads_number; i++)
 		pthread_join(threads[i], NULL);
 
-	// for (int i = 0; i < N; i++)
-	// 	{
-	// 		printf("Результат%f\n", result[i]);
-	// 	}
+		for (int i = 0; i < N; i++)
+	{
+		printf("Результат%f\n", result[i]);
+	}
 
-	stop = clock();
-	printf("Time for matrix with %d dimension on %d threads = %fsec.\n", N, threads_number, (double)(stop - start) / CLOCKS_PER_SEC);
+	t = mtime()-t;
+	printf("Time for matrix with %d dimension on %d threads = %fsec.\n", N, threads_number,t);
 
 	free(threads);
 	free(threadData1);
 }
 
 //gcc ptreads.c -lpthread -o phtreads && ./phtreads
+
+
