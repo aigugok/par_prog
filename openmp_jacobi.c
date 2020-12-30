@@ -3,11 +3,13 @@
 #include <omp.h>
 #include <stdlib.h>
 #include <math.h>
+#include <sys/time.h>
 
 #define N 500
 #define c 15.0
 #define treads_num 8
 
+double t;
 float A[N][N];//= {8, 1, 2, 0.5, 2, 1, 2, 0, 0, 0, 2, 0, 6, 0, 0, 0.5, 0, 0, 22, 0, 2, 0, 0, 0, 16}; //матрицы А
 float b[N];// = {17, 3, 7, 6, 12};
 // результат - {180, 23, 76,140.5,226}
@@ -22,6 +24,16 @@ float x_last[N];
 float C[N];
 float B[N][N];
 
+
+//функция, возращащающая время в мс
+double mtime()
+{
+  struct timeval t;
+
+  gettimeofday(&t, NULL);
+  double mt = (double)t.tv_sec + (double)t.tv_usec / 1000000;
+  return mt;
+}
 
 void matrix(void)
 {   
@@ -97,12 +109,10 @@ float Norm_max(float *norm, int Size)
 
 
 int main()
-{   clock_t start, stop;
-    float norm[N];
-
+{   float norm[N];
     matrix();
     omp_set_num_threads(treads_num);
-    clock_t start1 = clock();
+    t = mtime();
     #pragma omp parallel for shared(A, B, C) private(j) 
     for (int i = 0; i < N; i++)
 	{   
@@ -124,28 +134,20 @@ int main()
 
 	while (norma >= esp)
 	{
-		printf("Число итераций %d \n", count);
-		
-
 		multiplication(x_last, result);
-
-
 		Norm(result, x_last, N, norm);
-
 		norma = Norm_max(norm, N);
-		printf("Норма %f\n", norma);
-		printf("\n");
+		// printf("Норма %f\n", norma);
+		// printf("\n");
 		CopyArray(result, x_last, N);
 		CopyArray(zeros, result, N);
 
 		count++;
 	}
-       
-    clock_t stop1 = clock();
-    double elapsed1 = (double)(stop1 - start1) / CLOCKS_PER_SEC;
-    printf("\nTime %d thread for %d matrix =: %f\n",treads_num, N, elapsed1);
-
-
+    
+    t = mtime()-t;
+	printf("Число итераций %d \n", count);
+    printf("\nTime %d thread for %d matrix =: %f\n",treads_num, N, t);
 
     return 0;
 }
