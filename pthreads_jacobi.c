@@ -76,7 +76,7 @@ void *threadJac(void *threadJacData)
         {
             data->x_out[i] += B[i][j] * data->x_array[j];
         }
-        //data->x_out[i] = k; // + C[i];
+        data->x_out[i] += C[i];
         //printf("k=%f\n", k);
     }
     pthread_exit(0);
@@ -109,9 +109,7 @@ void *threadB(void *threadJacData)
 
     for (int i = data->from; i < data->to; i++)
     {
-        // printf("threadData1[i].from %d\n", data->from);
-        // printf("threadData1[i].to %d\n",data->to);
-        //k = C[i];
+        
         for (int j = 0; j < N; j++)
         {
             if (i != j)
@@ -119,9 +117,9 @@ void *threadB(void *threadJacData)
             else
                 B[i][j] = 0;
         }
-        data->x_out[i] = data->x_array[i] / A[i][i]; // + C[i];
+        data->x_out[i] = data->x_array[i] / A[i][i]; 
         x_in[i] = data->x_array[i] / A[i][i];
-        //printf("k=%f\n", k);
+ 
     }
     pthread_exit(0);
 }
@@ -139,7 +137,6 @@ int main()
     for (int i = 0; i < threads_number; i++)
     {
         threadData1[i].x_array = b;
-        //printf("threadData1[i].x_array %f\n", threadData1[i].x_array[i]);
         threadData1[i].row = N;
         threadData1[i].x_out = C;
         threadData1[i].from = i * int_num_iterations;
@@ -163,7 +160,6 @@ int main()
         for (int i = 0; i < threads_number; i++)
         {
             threadData1[i].x_array = x_in;
-            //printf("threadData1[i].x_array %f\n",
             threadData1[i].x_array[i];
             threadData1[i].row = N;
             threadData1[i].x_out = x_out;
@@ -189,7 +185,6 @@ int main()
         for (int i = 0; i < threads_number; i++)
         {
             threadData1[i].x_array = x_out;
-            //printf("threadData1[i].x_array %f\n", threadData1[i].x_array[i]);
             threadData1[i].row = N;
             threadData1[i].x_out = x_in;
             threadData1[i].from = i * int_num_iterations;
@@ -220,4 +215,4 @@ int main()
     free(threadData1);
 }
 
-//gcc ptreads.c -lpthread -lm -o phtreads && ./phtreads
+//gcc pthreads_jacobi.c -lpthread -lm -o phtreads && ./phtreads
